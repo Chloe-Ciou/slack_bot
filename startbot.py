@@ -9,9 +9,15 @@ from shared.constants import messages, photo_Type
 from shared.datasources import get_photo_unsplash
 from feature.feature import send_jobs, send_messages_regularly, get_joke
 
-rtm_client = slack.RTMClient(token=os.environ["SLACK_BOT_TOKEN"])
+from rbc_security import enable_certs
+# logging.basicConfig(level=logging.DEBUG)
+
+
+slack_token = os.environ['SLACK_BOT_TOKEN']
+proxy = os.environ['HTTP_PROXY']
 starterbot_id = None
 
+# constants
 EXAMPLE_COMMAND = "do"
 CHANNEL = "slack-bot"
 MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
@@ -100,10 +106,9 @@ def say_hello(**payload):
     """
         Schedule bot jobs 
     """
-    schedule.every().day.at("10:30").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
+    schedule.every().day.at("10:00").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
     schedule.every().day.at("16:00").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
-    schedule.every().day.at("14:00").do(send_messages_regularly, web_client, '', '',
-                                        [{'image_url': get_photo_unsplash(photo_Type[random.randint(0, len(photo_Type) - 1)])}])
+    # schedule.every().day.at("08:55").do(send_messages_regularly, web_client, '', '',[{'image_url': get_photo_unsplash('travel')}])
     thread = Thread(target=send_jobs)
     thread.start()
 
@@ -116,5 +121,10 @@ def response_message(**payload):
         handle_command(message, payload, True if user_id else False)
         sleep(RTM_READ_DELAY)
 
+
 if __name__ == "__main__":
+    # Make the client trust RBC's certificates
+    enable_certs()
+    rtm_client = slack.RTMClient(token=slack_token, proxy=proxy)
     rtm_client.start()
+
