@@ -1,10 +1,11 @@
 import re
 import os
 from time import sleep
+import random
 import slack
 import schedule
 from threading import Thread
-from shared.constants import messages
+from shared.constants import messages, photo_Type
 from shared.datasources import get_photo_unsplash
 from feature.feature import send_jobs, send_messages_regularly, get_joke
 
@@ -41,13 +42,10 @@ def parse_mention(message_text):
         return matches.group(1), matches.group(2).strip()
     elif 'late' in message_text:
         return None, 'fired'
-    elif 'thank you' in message_text or 'thanks' in message_text:
+    elif 'Thank you' in message_text or 'Thanks' in message_text:
         return None, 'thank_you'
     else:
         return None, ''
-
-    # the first group contains the username, the second group contains the remaining message
-
 
 def handle_command(message, payload, mentioned):
     """
@@ -63,19 +61,21 @@ def handle_command(message, payload, mentioned):
     if mentioned:
         if message.startswith('hi'):
             response = f"Hello <@{data['user']}>! How can I help you?"
-
-        # do with a task
         elif message.startswith(EXAMPLE_COMMAND):
             message = (message.replace('do', '', 1)).strip()
+            # do with a task
             if message == 'checkin':
                 response = f"checkin"
+            # do without a task
             else:
                 response = f"Sure...please write the task then I can do that!"
 
-        # do without a task
+        # mentioned without unknown message
         else:
             response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+
     else:
+        # handle specific cases
         if message == 'fired' or message == 'thank_you':
             response = f"<@{data['user']}> {messages[message]}"
 
@@ -86,6 +86,7 @@ def handle_command(message, payload, mentioned):
             text=response,
             thread_ts=data['ts'] if mentioned else ''
         )
+
 
 @slack.RTMClient.run_on(event='hello')
 def say_hello(**payload):
@@ -101,7 +102,8 @@ def say_hello(**payload):
     """
     schedule.every().day.at("10:30").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
     schedule.every().day.at("16:00").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
-    schedule.every().day.at("14:00").do(send_messages_regularly, web_client, '', '', [{'image_url': get_photo_unsplash('travel')}])
+    schedule.every().day.at("14:00").do(send_messages_regularly, web_client, '', '',
+                                        [{'image_url': get_photo_unsplash(photo_Type[random.randint(0, len(photo_Type) - 1)])}])
     thread = Thread(target=send_jobs)
     thread.start()
 
