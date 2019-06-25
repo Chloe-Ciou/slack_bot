@@ -1,13 +1,12 @@
 import time
 import schedule
-import requests
 import pyjokes
 
 def get_attachments(attachs):
     attach_list = []
     for attach in attachs:
         attach_list.append({
-            'text': 'Take a break!',
+            'text': "Let's take a break !",
             'image_url': attach['image_url'] if attach['image_url'] else ''
         })
     return attach_list
@@ -39,3 +38,4 @@ def send_jobs():
     while True:
         schedule.run_pending()
         time.sleep(1)
+
