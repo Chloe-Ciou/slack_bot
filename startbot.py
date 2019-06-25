@@ -5,13 +5,11 @@ import random
 import slack
 import schedule
 from threading import Thread
-from shared.constants import messages, photo_Type
-from shared.datasources import get_photo_unsplash
+from shared.constants import messages, data_type
+from shared.datasources import get_photo_unsplash, get_message
 from feature.feature import send_jobs, send_messages_regularly, get_joke
 
 from rbc_security import enable_certs
-# logging.basicConfig(level=logging.DEBUG)
-
 
 slack_token = os.environ['SLACK_BOT_TOKEN']
 proxy = os.environ['HTTP_PROXY']
@@ -106,9 +104,12 @@ def say_hello(**payload):
     """
         Schedule bot jobs 
     """
-    schedule.every().day.at("10:00").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
-    schedule.every().day.at("16:00").do(send_messages_regularly, web_client, get_joke(), 'Time For a Joke!  >>>>>  \n')
-    # schedule.every().day.at("08:55").do(send_messages_regularly, web_client, '', '',[{'image_url': get_photo_unsplash('travel')}])
+    schedule.every().day.at("15:27").do(send_messages_regularly, web_client, get_joke(), data_type['joke'])
+    schedule.every().day.at("16:00").do(send_messages_regularly, web_client, get_joke(), data_type['joke'])
+    # schedule.every().day.at("11:15").do(send_messages_regularly, web_client, '', '',[{'image_url': get_photo_unsplash(data_type['take_break'][random.randint(0, len(data_type['take_break']) - 1)])}])
+    schedule.every().day.at("15:27").do(send_messages_regularly, web_client, '',
+                                      get_message('health_reminders'),
+                                      [{'image_url': 'https://s3.amazonaws.com/uifaces/faces/twitter/marcoramires/128.jpg'}])
     thread = Thread(target=send_jobs)
     thread.start()
 
